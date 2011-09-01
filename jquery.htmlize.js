@@ -19,12 +19,13 @@
 		// Risky Attributes to backup
 		riskyAttributes = ['value', 'selected', 'checked', 'disabled'],
 	
+		// Sync Attributes from Node Properties
 		syncAttributes = function() {
 			
 			var attribute;
 			
 			for(var i in riskyAttributes) {
-/* 				if(riskyAttributes.hasOwnProperty(i)) { */
+				if(riskyAttributes.hasOwnProperty(i)) {
 					
 					attribute = riskyAttributes[i];
 					
@@ -40,32 +41,37 @@
 							this.setAttribute(attribute, this[attribute]);
 						}
 					}
-/* 				} */
+				}
 			}
 		};
 	
-	// returns an outerHTML concatenation (if many elements) by default
-	$.fn.serializeDOM = function(returnInnerHTML) {
+	// returns an outerHTML (by default) concatenation, if this contains many elements
+	$.fn.htmlize = function(options) {
+	
+		// Configuration
+		options = $.extend({
+			innerHTML: false,
+			clone: true
+		}, options);
 		
 		// Clone for footprint & outerHTML
-		var $clone = this.clone();
+		var $el = options.clone ? this.clone() : this;
 		
 		// Syncing
-		$clone
+		$el
 			// Sync Clone
 			.each(syncAttributes)
 				
 			// Sync Clone's Descendants
 			.find(riskyTagNames.join(', ')).each(syncAttributes);
 		
-		
 		// Serialization
-		if(returnInnerHTML) {
+		if(options.innerHTML) {
 			
 			// innerHTML
 			var result = '';
 			
-			$clone.each(function() {
+			$el.each(function() {
 				result += this.innerHTML;
 			});
 			
@@ -74,8 +80,7 @@
 		} else {
 			
 			// outerHTML
-			return $clone.appendTo('<div/>').parent().get(0).innerHTML;
+			return $el.appendTo('<div/>').parent().get(0).innerHTML;
 		}
 	};
 })(jQuery);
-/**/
