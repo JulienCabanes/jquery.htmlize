@@ -17,18 +17,14 @@
 	var riskyTagNames = ['input', 'textarea', 'select', 'option'],
 		
 		// Risky Attributes to backup
-		riskyAttributes = ['value', 'selected', 'checked', 'disabled'];
+		riskyAttributes = ['value', 'selected', 'checked', 'disabled'],
 	
-	
-	// Syncing attributes
-	$.fn.serializerSync = function() {
-
-		return this.each(function() {
+		syncAttributes = function() {
 			
 			var attribute;
 			
 			for(var i in riskyAttributes) {
-				if(riskyAttributes.hasOwnProperty(i)) {
+/* 				if(riskyAttributes.hasOwnProperty(i)) { */
 					
 					attribute = riskyAttributes[i];
 					
@@ -39,35 +35,33 @@
 							// Special case : textarea needs innerHTML sync, not value
 							this.innerHTML = this.value;
 							
-						} else { 
+						} else {
 							// Sync attribute from property
 							this.setAttribute(attribute, this[attribute]);
 						}
 					}
-				}
+/* 				} */
 			}
-		});
-	};
+		};
 	
-	// Serializer : returns an outerHTML concatenation by default
-	$.fn.serializer = function(returnInnerHTML) {
+	// returns an outerHTML concatenation (if many elements) by default
+	$.fn.serializeDOM = function(returnInnerHTML) {
 		
-		var $clone = this
-						
-						// Clone for footprint & outerHTML
-						.clone()
-						
-						// Sync Clone
-						.serializerSync()
-							
-						// Sync Clone's Descendants
-						.find(riskyTagNames.join(', '))
-							.serializerSync()
-							.end();
+		// Clone for footprint & outerHTML
+		var $clone = this.clone();
+		
+		// Syncing
+		$clone
+			// Sync Clone
+			.each(syncAttributes)
+				
+			// Sync Clone's Descendants
+			.find(riskyTagNames.join(', ')).each(syncAttributes);
+		
 		
 		// Serialization
-		
 		if(returnInnerHTML) {
+			
 			// innerHTML
 			var result = '';
 			
@@ -78,6 +72,7 @@
 			return result;
 		
 		} else {
+			
 			// outerHTML
 			return $clone.appendTo('<div/>').parent().get(0).innerHTML;
 		}
