@@ -1,104 +1,86 @@
 /**
  * jquery.serializer
  *
- * Copyright 2011, Zee Agency
+ * Copyright 2011, Zee Agency http://www.zeeagency.com
  * Licensed under the CeCILL-C license
  * 
  * http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.html
  * http://www.cecill.info/licences/Licence_CeCILL-C_V1-fr.html
  *
  * @author: Julien Cabanès
- * @version: 0.1
+ * @version: 0.2
  */
 
 (function($) {
-		// Prefix backup
-	var backupDataPrefix = 'backup_',
-		
+
 		// Risky TagNames
-		riskyTagNames = ['input', 'textarea', 'select', 'option'],
+	var riskyTagNames = ['input', 'textarea', 'select', 'option'],
 		
 		// Risky Attributes to backup
-		riskyAttributes = ['value', 'selected', 'checked', 'disabled'],
+		riskyAttributes = ['value', 'selected', 'checked', 'disabled'];
 	
-		// Remove the risky attributes and restore it with backup data
-		cleanHtmlCode = function(htmlCode) {
-			//console.log('htmlCode', htmlCode);
-			
-			// Remove attributes
-			for(var i in riskyAttributes) {
-				if(riskyAttributes.hasOwnProperty(i)) {
-					
-					htmlCode = htmlCode.replace(new RegExp(' '+riskyAttributes[i]+'="[^"]*"', 'gi'), '');
-				}
-			}
-			
-			// Restore attributes
-			return htmlCode.replace(new RegExp(backupDataPrefix, 'gi'), '');
-		
-		},
-		
-		// Setting data-*, Cross Browser…
-		setData = document.body.dataset ? 
-			// el.dataset
-			function(el, attributeName) {
-				
-				if(el[attributeName]) {
-					el.dataset[backupDataPrefix + attributeName] = el[attributeName];
-				}
-			} : 
-			
-			// el.setAttribute
-			function(el, attributeName) {
-			
-				if(el[attributeName]) {
-					el.setAttribute['data-' + backupDataPrefix + attributeName] = el[attributeName];
-				}
-			};
 	
-	// Backup attributes
-	$.fn.serializerBackup = function() {
+	// Syncing attributes
+	$.fn.serializerSync = function() {
 
 		return this.each(function() {
 			
-			// Risky attributes are backed up to data-* (ie. value --> data-backup_value)
+			var attribute;
+			
 			for(var i in riskyAttributes) {
 				if(riskyAttributes.hasOwnProperty(i)) {
-				
-					setData(this, riskyAttributes[i]);
+					
+					attribute = riskyAttributes[i];
+					
+					// Need to sync : attribute or property is positive 
+					if(attribute in this && (this.getAttribute(attribute) !== null || this[attribute])) {
+						
+						if(this.nodeName === 'TEXTAREA' && attribute === 'value') {
+							// Special case : textarea needs innerHTML sync, not value
+							this.innerHTML = this.value;
+							
+						} else { 
+							// Sync attribute from property
+							this.setAttribute(attribute, this[attribute]);
+						}
+					}
 				}
 			}
 		});
 	};
 	
-	// Serialize me (returns an outerHTML)
-	$.fn.serializer = function() {
-			
-		return cleanHtmlCode(
+	// Serializer : returns an outerHTML concatenation by default
+	$.fn.serializer = function(returnInnerHTML) {
 		
-			// Prepare textarea for cloning
-			this.find('textarea')
-				.each(function() {
-					this.innerHTML = this.value;
-				})
-				.end()
+		var $clone = this
+						
+						// Clone for footprint & outerHTML
+						.clone()
+						
+						// Sync Clone
+						.serializerSync()
+							
+						// Sync Clone's Descendants
+						.find(riskyTagNames.join(', '))
+							.serializerSync()
+							.end();
+		
+		// Serialization
+		
+		if(returnInnerHTML) {
+			// innerHTML
+			var result = '';
 			
-			// Clone
-			.clone()
+			$clone.each(function() {
+				result += this.innerHTML;
+			});
 			
-			// Serialize the Clone
-			.serializerBackup()
-			
-			// Serialize Clone's Descendants
-			.find(riskyTagNames.join(', '))
-				.serializerBackup()
-				.end()
-			
+			return result;
+		
+		} else {
 			// outerHTML
-			.appendTo('<div/>')
-			.parent()
-			.get(0)
-			.innerHTML
-		);
+			return $clone.appendTo('<div/>').parent().get(0).innerHTML;
+		}
 	};
 })(jQuery);
+/**/
