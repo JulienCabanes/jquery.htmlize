@@ -27,17 +27,24 @@ Let's say we have an input field with default value to "foo". I use ```outerHTML
 ```input.outerHTML === '<input value="foo">';```
 
 The user changes it to bar.
+
 ```input.outerHTML === '<input value="foo">';```
+
 but
+
 ```input.value === 'bar';```
 
 Backup the risky attribute to a safety attribute
+
 ```input.innerHTML === '<input value="foo" data-backup-value="bar">';```
 
+
 One RegExp later
+
 ```<input data-backup-value="bar">```
 
 Another RegExp later
+
 ```<input value="bar">```
 
 And here it is ! Good serialization.
@@ -56,9 +63,11 @@ input.outerHTML === '<input value="foobar">';
 ```
 
 The weird thing is…
+
 ```input.value === 'bar';```
 
 But we don't care ! We only need to do :
+
 ```input.setAttribute('value', input.value);```
 
 Actually, it's just like resyncing the attributes : no more ```RegExp```, no more ```data-\*``` attributes tricks, only resyncing.
