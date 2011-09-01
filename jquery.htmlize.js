@@ -8,7 +8,7 @@
  * http://www.cecill.info/licences/Licence_CeCILL-C_V1-fr.html
  *
  * @author: Julien Cabanès
- * @version: 0.2
+ * @version: 0.3
  */
 
 (function($) {
