@@ -1,6 +1,16 @@
 # DOM Serializer jQuery plugin
+
 ## What ?
 ```$.html()``` is not a DOM serializer, ```$.htmlize()``` is.
+
+## Why ? Short version.
+```
+document.body.innerHTML = '<input>';
+document.body.firstChild.value = 'foo';
+$('body').html() === '<input>';
+$('input').htmlize() === '<input value="foo">';
+```
+
 ## How to use ?
 ```
 $('#serialize-me').htmlize();
@@ -11,7 +21,7 @@ By default, it returns an ```outerHTML``` concatenation from node's clone becaus
 ```
 $('#serialize-me').htmlize({innerHTML: true, clone: false});
 ```
-## Why ?
+## Why ? Long version.
 In order to create PDF export from the DOM via wkhtmltopdf I needed to serialize the DOM. The context was a Web App I'm still working on, running with Backbone.js, with lots of form elements and calculations, like spreadsheets…
 So because of client-side templating and user interaction, what I needed wasn't the HTML sent by the server, but exactly the same DOM the user had in front of his eyes.
 It quickly appears that ```element.innerHTML``` didn't fit my needs. If you use ```innerHTML``` in a form, you'd see that fields (```input```, ```textarea```, ```select```…) are badly serialized : some attributes aren't updated, ```value``` for instance but also ```disabled```, ```selected```…
