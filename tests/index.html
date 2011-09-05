@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+	<title>$.htmlize() Tests</title>
+	<link rel="stylesheet" href="qunit.css"/>
+	<style>
+		input {
+			-webkit-appearance: none;
+			-moz-appearance: button;
+			
+			border: 2px solid #000 !important;
+			width: 200px;
+			height: 20px;
+		}
+		input:checked {
+			border: 2px solid red;
+		}
+		input[checked="checked"] {
+			border: 2px solid green;
+		}
+		input[value=""] {
+			background: green;
+		}
+		
+	</style>
+</head>
+<body>
+	<h1 id="qunit-header">$.htmlize() Test Suite</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+	<div id="qunit-fixture">
+	
+		<form id="test">
+			<input id="test-1" type="text" value="foo"/>
+			<input id="test-2" type="checkbox" value="foo"/>
+			<textarea id="test-3"></textarea>
+		</form>
+		
+	</div>
+	
+	<script src="jquery.js"></script>
+	<script src="qunit.js"></script>
+	<script src="../jquery.htmlize.js"></script>
+	<script src="test.js"></script>
+</body>
+</html>
