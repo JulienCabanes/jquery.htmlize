@@ -1,5 +1,5 @@
 /**
- * jquery.serializer
+ * jquery.htmlize
  *
  * Copyright 2011, Zee Agency http://www.zeeagency.com
  * Licensed under the CeCILL-C license
@@ -8,7 +8,7 @@
  * http://www.cecill.info/licences/Licence_CeCILL-C_V1-fr.html
  *
  * @author: Julien Cabanès
- * @version: 0.3
+ * @version: 0.4
  */
 
 (function($) {
@@ -17,12 +17,51 @@
 	var riskyTagNames = ['input', 'textarea', 'select', 'option'],
 		
 		// Risky Attributes to backup
-		riskyAttributes = ['value', 'selected', 'checked', 'disabled'],
+		riskyAttributes = ['value', 'selected', 'checked', 'disabled'];
+		
 	
-		// Sync Attributes from Node Properties
-		syncAttributes = function() {
+	// Prepare cloning
+	$.fn.htmlizeClone = function(recursive) {
+		
+		this.each(function() {
 			
-			var attribute;
+			var el = this;
+			
+			if(el.nodeName === 'TEXTAREA') {
+			
+				el.innerHTML = el.value;
+				
+			} else if(el.nodeName === 'OPTION') {
+				
+				if(el.selected) {
+				
+					el.setAttribute('selected', 'selected');
+					
+				} else {
+				
+					el.removeAttribute('selected');
+				}
+				
+			} else if(el.children.length) {
+				
+				// Recursive won't clone
+				$(el).find('textarea, option').htmlizeClone(true);
+			}
+		
+			// Each won't do anything...
+		});
+		
+		return recursive ? this : this.clone();
+	};
+		
+	// Sync Attributes from Node Properties
+	$.fn.htmlizeSyncAttributes = function() {
+		
+		return this.each(function() {
+			
+			var el = this,
+				
+				attribute;
 			
 			for(var i in riskyAttributes) {
 				if(riskyAttributes.hasOwnProperty(i)) {
@@ -30,22 +69,26 @@
 					attribute = riskyAttributes[i];
 					
 					// Need to sync : attribute or property is positive 
-					if(attribute in this && (this.getAttribute(attribute) !== null || this[attribute])) {
+					if(	attribute in el 
+						&&  (el.getAttribute(attribute) !== null || el[attribute])
+						&& !(el.nodeName === 'TEXTAREA' && attribute === 'value')) {
 						
-						if(this.nodeName === 'TEXTAREA' && attribute === 'value') {
-							// Special case : textarea needs innerHTML sync, not value
-							this.innerHTML = this.value;
-							
-						} else {
-							// Sync attribute from property
-							this.setAttribute(attribute, this[attribute]);
-						}
+						// Sync attribute from property
+						el.setAttribute(attribute, el[attribute]);
 					}
 				}
 			}
-		};
+			
+			// Sync Clone's Descendants
+			if(el.children.length) {
+			
+				$(el).find(riskyTagNames.join(', ')).htmlizeSyncAttributes();
+				
+			}
+		});
+	};
 	
-	// returns an outerHTML (by default) concatenation, if this contains many elements
+	// returns an outerHTML (by default), concatenates if many elements 
 	$.fn.htmlize = function(options) {
 	
 		// Configuration
@@ -54,16 +97,9 @@
 			clone: true
 		}, options);
 		
-		// Clone for footprint & outerHTML
-		var $el = options.clone ? this.clone() : this;
 		
-		// Syncing
-		$el
-			// Sync Clone
-			.each(syncAttributes)
-				
-			// Sync Clone's Descendants
-			.find(riskyTagNames.join(', ')).each(syncAttributes);
+		// Clone for footprint & outerHTML
+		var $el = $(this).htmlizeClone().htmlizeSyncAttributes();
 		
 		// Serialization
 		if(options.innerHTML) {
@@ -80,7 +116,7 @@
 		} else {
 			
 			// outerHTML
-			return $el.appendTo('<div/>').parent().get(0).innerHTML;
+			return $el.length ? $el.appendTo('<div/>').parent().get(0).innerHTML : '';
 		}
 	};
 })(jQuery);
