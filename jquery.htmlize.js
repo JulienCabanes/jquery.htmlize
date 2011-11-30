@@ -8,7 +8,7 @@
  * http://www.cecill.info/licences/Licence_CeCILL-C_V1-fr.html
  *
  * @author: Julien Cabanès
- * @version: 0.4
+ * @version: 0.5
  */
 
 (function($) {
@@ -17,7 +17,9 @@
 	var riskyTagNames = ['input', 'textarea', 'select', 'option'],
 		
 		// Risky Attributes to backup
-		riskyAttributes = ['value', 'selected', 'checked', 'disabled'];
+		riskyAttributes = ['value', 'selected', 'checked', 'disabled'],
+		
+		noValueAttributes = ['selected', 'checked', 'disabled'];
 		
 	
 	// Prepare cloning
@@ -71,10 +73,22 @@
 					// Need to sync : attribute or property is positive 
 					if(	attribute in el 
 						&&  (el.getAttribute(attribute) !== null || el[attribute])
-						&& !(el.nodeName === 'TEXTAREA' && attribute === 'value')) {
+						&& !((el.nodeName === 'TEXTAREA' || el.nodeName === 'SELECT') && attribute === 'value')) {
 						
 						// Sync attribute from property
-						el.setAttribute(attribute, el[attribute]);
+						if(attribute === 'value') {
+						
+							el.setAttribute(attribute, el[attribute]);
+						} else {
+							
+							if(el[attribute]) {
+							
+								el.setAttribute(attribute, attribute);
+							} else {
+								
+								el.removeAttribute(attribute);
+							}
+						}
 					}
 				}
 			}
